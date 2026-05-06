@@ -1,0 +1,46 @@
+# 通用项目忽略
+.DS_Store
+.idea/
+.vscode/
+*.pyc
+__pycache__/
+*.log
+tmp/
+temp/
+
+# 你的数据文件夹（这些不会被Git跟踪）
+af_0/
+af_1/
+CNstars/
+LAMOST_data/
+output/
+result/
+figures/
+plots/
+images/
+data/
+
+af_0/
+af_1/
+CNstars/
+Data/
+dr13_new/
+FT/
+
+#GitHub 工作流（如果你不需要提交配置）
+.github/
+
+# 通用 Python/VS Code 忽略
+.vscode/
+.idea/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+.DS_Store
+*.ipynb_checkpoints/
+tmp/
+temp/
+*.bak
+*.swp
