@@ -1,0 +1,11 @@
+*.fits
+*.fits.gz
+*.npy
+*.csv
+
+CNstars/
+Augmented_Data/
+lamost_dr13/
+
+__pycache__/
+.DS_Store
