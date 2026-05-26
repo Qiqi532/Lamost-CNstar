@@ -27,6 +27,13 @@ Data/
 dr13_new/
 FT/
 
+*.csv
+*.png
+*.xlsx
+*.json
+*.fits
+*.fits.gz
+
 #GitHub 工作流（如果你不需要提交配置）
 .github/
 
@@ -44,3 +51,4 @@ tmp/
 temp/
 *.bak
 *.swp
+
