@@ -4,6 +4,7 @@
 .vscode/
 *.pyc
 __pycache__/
+_cache/
 *.log
 tmp/
 temp/
@@ -26,6 +27,7 @@ CNstars/
 Data/
 dr13_new/
 FT/
+
 
 *.csv
 *.png
