@@ -54,3 +54,5 @@ temp/
 *.bak
 *.swp
 
+PhaseSummary/_cache/
+PhaseSummary/_cache/
