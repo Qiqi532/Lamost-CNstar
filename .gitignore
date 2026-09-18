@@ -38,6 +38,9 @@ FT/
 
 #GitHub 工作流（如果你不需要提交配置）
 .github/
+.claude/
+docs/
+note
 
 # 通用 Python/VS Code 忽略
 .vscode/
@@ -57,3 +60,12 @@ temp/
 PhaseSummary/_cache/
 PhaseSummary/_cache/
 *.pkl
+
+# 发布仓库只保留研究代码、Notebook 和 README；模型与文献资料留在本地
+*.pt
+*.pth
+*.pdf
+*.txt
+*.md
+!README.md
+analyse/

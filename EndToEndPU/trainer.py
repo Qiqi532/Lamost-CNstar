@@ -160,8 +160,14 @@ class EndToEndPUTrainer:
         history = {
             "train_loss": [], "val_pr": [], "val_roc": [],
             "train_pos_prob_mean": [], "train_unl_prob_mean": [],
-            "lr": [],
+            "lr": [], "band_weight_ratio": [],
         }
+
+        # Track CN-attention learning: full wavelength profile snapshots
+        # (only when the model has a learnable CN attention module).
+        attention_snapshots: Dict[int, np.ndarray] = {}
+        snapshot_epochs = {1, 2, 5, 10, 20, 50, 100, 150, 200, 300}
+        has_cn_attention = getattr(model, "use_cn_attention", False)
 
         # Track "hard negatives" cache (re-scored every 10 epochs)
         unl_scores_cache = np.full(n_unl, 0.5, dtype=np.float32)
@@ -279,6 +285,16 @@ class EndToEndPUTrainer:
             history["val_pr"].append(val_pr)
             history["val_roc"].append(val_roc)
 
+            # ── 8.5 Track CN attention learning ──
+            if has_cn_attention:
+                history["band_weight_ratio"].append(
+                    model.cn_attention.get_band_weight_ratio()
+                )
+                if epoch in snapshot_epochs:
+                    attention_snapshots[epoch] = model.get_cn_attention_profile()
+            else:
+                history["band_weight_ratio"].append(float("nan"))
+
             # ── 9. Early stopping ──
             if val_pr > best_val_pr:
                 best_val_pr = val_pr
@@ -325,6 +341,7 @@ class EndToEndPUTrainer:
             "best_val_pr": best_val_pr,
             "best_val_roc": best_val_roc,
             "history": history,
+            "attention_snapshots": attention_snapshots,
             "elapsed_seconds": elapsed,
             "pi_p": pi_p,
             "loss_mode": self.loss_mode,
