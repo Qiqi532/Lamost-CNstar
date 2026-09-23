@@ -59,6 +59,36 @@
 
 *Label Spreading 的 Precision@K 来自已知标签上的 pseudo-metrics，不能等同于独立测试集性能。
 
+## 最新实验进展（2026-09）
+
+### CrossFit 基线与新增标签审计
+
+在 91 颗已知 CN 星上训练的原始 CrossFit，对 99 个新增高分辨率标签进行冻结模型外部审计，得到 ROC-AUC **0.911 ± 0.031**、PR-AUC **0.876**。该结果保留为 M2 实验的基线，不应与加入新增标签后的 OOF 指标混为同一评估协议。
+
+### M2 新增标签训练
+
+新增标签包含 **46 个正例**和 **53 个可靠负例**。M2 使用严格的 5 折 OOF 协议：每个新增对象只由未见过它的模型评分，并从正例、可靠负例和普通 U 采样池中同时排除 held-out 标签，避免标签泄漏。
+
+| 结果 | ROC-AUC | PR-AUC | 说明 |
+| --- | ---: | ---: | --- |
+| 99 个新增标签严格 OOF | **0.939 ± 0.026** | **0.909** | M2 独立评价协议 |
+| 190 个已标记对象总体 OOF | **0.926** | **0.971** | 137 正例 + 53 可靠负例 |
+
+基于 137 个确认正例的 OOF 分数，90% 召回阈值为 **0.249882**，保留 124/137 个正例，导出 **393 个**未标注候选。95% 召回阈值为 **0.098071**，实际召回率 **95.62%**，导出 **1,081 个**候选。原 91 颗已知星按90%阈值重新标记后，模型识别 **79 颗**、漏检 **12 颗**。这些分数是 PU 排序分数，不是校准后的后验概率。
+
+完整流程见 [m2_crossfit/M2_crossfit_full_pipeline.ipynb](m2_crossfit/M2_crossfit_full_pipeline.ipynb)，训练引擎见 [m2_crossfit/m2_crossfit_engine.py](m2_crossfit/m2_crossfit_engine.py)，紧凑结果导出见 [m2_crossfit/export_compact_tables.py](m2_crossfit/export_compact_tables.py)。
+
+### 光谱特征二次核验
+
+`feature/` 对冻结的 654 个 XGBoost 候选进行 CN 指数和差分面积两条路径的二次分层。两种方法都支持候选排序、簇内参考比较和已知星召回统计；鲁棒双指标筛选分别保留约 222 个对象。该阶段用于候选分层和光谱证据交叉检查，不把指数法或面积法单独宣称为独立确认分类器。
+
+### 当前研究判断
+
+1. XGBoost PU/CrossFit 仍是当前最稳定的候选排序主线。
+2. 新增高分辨率标签显著提升了 M2 的独立 OOF 区分能力，但 91 颗已知星中仍有 12 颗漏检，应优先作为困难星体核验集。
+3. 90% 与 95% 阈值适合产生不同规模的观测候选池；实际确认仍需结合光谱质量、CN/CH 指数、差分面积和人工复核。
+4. feature 阶段更适合作为 M2 候选的二次证据排序，而不是替代独立高分辨率标签。
+
 目前最重要的研究判断是：
 
 1. **XGBoost PU Bagging 是当前最可靠的候选体排序方法。** 在最新合并缓存上，500 次 PU bagging 得到 ROC-AUC=0.9883、PR-AUC=0.6030，并按已知 CN 星得分分布标定阈值，筛出约 890 个候选体（2.16%）。
@@ -162,6 +192,10 @@ Lamost/
 │   └── shared/
 ├── EndToEndPU/              # 1D ResNet + CN attention + nnPU
 ├── XGB/                     # XGBoost 候选体交叉实验
+├── crossfit/                # 原始 CrossFit 引擎、Notebook 与测试
+├── diagnosis/               # 新增标签诊断、加样本实验与阈值审计
+├── feature/                 # CN 指数、差分面积与方法交叉核验
+├── m2_crossfit/             # 严格 M2 OOF、候选导出与91星重新标记
 ├── build_dr13_all_cache.py  # 最新数据缓存构建脚本
 └── README.md                # 项目总览与研究结论
 ~~~
@@ -172,11 +206,11 @@ Lamost/
 
 如果只想快速了解目前的研究结论，建议按以下顺序阅读：
 
-1. [EndToEndPU/EndToEndPU_Summary.ipynb](EndToEndPU/EndToEndPU_Summary.ipynb)：深度 PU 方法总结与对比。
-2. [PhaseSummary/03_ML_XGB/ML_XGB_PU.ipynb](PhaseSummary/03_ML_XGB/ML_XGB_PU.ipynb)：当前标杆方法的实验记录。
-3. [PhaseSummary/01_T_physics/T_physics.ipynb](PhaseSummary/01_T_physics/T_physics.ipynb)：物理基线和候选体定义。
-4. [ML/LabelSpreading/summary.ipynb](ML/LabelSpreading/summary.ipynb)：图半监督及流形方法总结。
-5. [ML/SpectraAE/ae_pipeline_summary.ipynb](ML/SpectraAE/ae_pipeline_summary.ipynb)：自编码器表示学习总结。
+1. [m2_crossfit/M2_crossfit_full_pipeline.ipynb](m2_crossfit/M2_crossfit_full_pipeline.ipynb)：最新 M2 训练、严格 OOF 和候选导出。
+2. [m2_crossfit/README.md](m2_crossfit/README.md)：M2 结果口径、字段说明和复现命令。
+3. [EndToEndPU/EndToEndPU_Summary.ipynb](EndToEndPU/EndToEndPU_Summary.ipynb)：深度 PU 方法总结与对比。
+4. [PhaseSummary/03_ML_XGB/ML_XGB_PU.ipynb](PhaseSummary/03_ML_XGB/ML_XGB_PU.ipynb)：历史 XGBoost PU 主实验。
+5. [feature/CN_method_crosscheck.ipynb](feature/CN_method_crosscheck.ipynb)：候选光谱特征的交叉核验。
 
 如果需要从代码开始：
 
